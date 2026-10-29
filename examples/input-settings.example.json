@@ -1,0 +1,5 @@
+{
+  "window_title": "Your Foreground Window",
+  "input_style": "pointer",
+  "keyboard_backend": "sendinput_scancode"
+}

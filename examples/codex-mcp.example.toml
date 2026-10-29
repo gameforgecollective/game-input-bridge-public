@@ -1,0 +1,5 @@
+# Add this section to your existing MCP client configuration.
+# Replace the example checkout path with your own absolute path.
+[mcp_servers.game_input_bridge]
+command = "C:/Projects/game-input-bridge-public/.venv/Scripts/python.exe"
+args = ["C:/Projects/game-input-bridge-public/game_input_mcp.py"]

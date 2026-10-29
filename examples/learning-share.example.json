@@ -1,0 +1,7 @@
+{
+  "enabled": false,
+  "helper": "MyHelper",
+  "remote": "https://github.com/your-account/your-private-learning-repo.git",
+  "branch": "learning-exchange",
+  "timeout": 20
+}

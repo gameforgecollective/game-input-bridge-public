@@ -1,0 +1,38 @@
+# Local environments and build output
+.venv/
+venv/
+node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+dist/
+
+# Private runtime settings and learning data
+*.local.*
+*.db
+*.sqlite*
+learning_data/
+records/
+.env
+.env.*
+config.toml
+bridge-config.json
+
+# Private artifacts and media
+backups/
+playtests/
+receipts/
+captures/
+screenshots/
+*.log
+*.png
+*.jpg
+*.jpeg
+*.zip
+
+# Editor/OS files
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
