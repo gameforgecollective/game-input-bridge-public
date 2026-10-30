@@ -13,6 +13,8 @@ neutral examples and optional sharing turned off.
 
 - **Short, controlled actions:** key taps, movement chords, relative camera input
   and mouse interaction, with holds limited to two seconds.
+- **Controls before input:** inspect the selected keyboard method, binding hints
+  and safety limits without sending a test key or moving the pointer.
 - **Action-and-view calls:** perform one action or up to three planned steps and
   receive a fresh image for inspection.
 - **Local learning:** save controls, routines, failures and open questions with
@@ -53,6 +55,11 @@ Reconnect your MCP client after updating the server.
 Start with `inspect_active_window`. Pass the actual foreground title as
 `expected_window` for each input call. The bridge checks that title before
 sending input; it does not activate another window for you.
+
+Its `control_settings` report describes configuration, with runtime verification
+and authorization explicitly false. It does not prove that a world is loaded or
+that the controls work. Follow the [movement calibration guide](docs/movement-calibration.md)
+to measure short walking, jumping and camera actions separately before longer travel.
 
 Physical scan-code keyboard input is the default for an unrecognized title.
 If you need to select a keyboard method or pointer-style interaction, copy

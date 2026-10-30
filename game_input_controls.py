@@ -70,6 +70,23 @@ def game_profile_for_window(title: str) -> tuple[str, dict]:
             return name, dict(profile)
     return "unverified", {"keyboard_backend": "sendinput_scancode"}
 
+def control_settings_for_window(title: str) -> dict | None:
+    """Describe configured input without sending or claiming to verify it."""
+    if not title:
+        return None
+    name, profile = game_profile_for_window(title)
+    return {
+        "profile": name,
+        "keyboard_backend": profile["keyboard_backend"],
+        "bindings": {key: value for key, value in profile.items()
+                     if key not in {"window_title", "keyboard_backend"}},
+        "limits": {"max_hold_ms": MAX_HOLD_MS, "max_mouse_delta": MAX_MOUSE_DELTA,
+                   "max_sequence_steps": MAX_SEQUENCE_STEPS, "max_sequence_ms": MAX_SEQUENCE_MS},
+        "runtime_verified": False,
+        "controls_authorized": False,
+        "notice": "Configuration only; verify actual movement and camera response after an authorized action.",
+    }
+
 KEY_ALIASES = {
     "spacebar": "space",
     "esc": "escape",

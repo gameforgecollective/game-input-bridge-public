@@ -33,6 +33,58 @@ class LearningBridgeTests(unittest.TestCase):
             blocker.start()
             self.addCleanup(blocker.stop)
 
+    def test_inspection_reports_configured_controls_before_input(self):
+        fixture = {"window_title": "Calibration Fixture", "keyboard_backend": "sendinput_scancode",
+                   "movement": "WASD", "camera": "relative mouse"}
+        with patch.dict(bridge.GAME_PROFILES, {"calibration_fixture": fixture}, clear=True), \
+             patch.object(bridge, "active_window_title", return_value="Calibration Fixture"):
+            result = bridge.inspect_active_window()
+        self.assertIn("control_settings", result)
+        settings = result["control_settings"]
+        self.assertEqual(settings["profile"], "calibration_fixture")
+        self.assertEqual(settings["keyboard_backend"], "sendinput_scancode")
+        self.assertEqual(settings["bindings"]["movement"], "WASD")
+        self.assertEqual(settings["bindings"]["camera"], "relative mouse")
+        self.assertFalse(settings["runtime_verified"])
+        self.assertFalse(settings["controls_authorized"])
+        self.assertFalse(self.store.path.exists())
+
+    def test_inspection_labels_unknown_controls_as_unverified(self):
+        with patch.object(bridge, "active_window_title", return_value="Calibration Unknown"):
+            result = bridge.inspect_active_window()
+        self.assertIn("control_settings", result)
+        settings = result["control_settings"]
+        self.assertEqual(settings["profile"], "unverified")
+        self.assertIn(settings["keyboard_backend"], {"sendinput_scancode", "pyautogui_virtual_key"})
+        self.assertEqual(settings["bindings"], {})
+        self.assertFalse(settings["runtime_verified"])
+        self.assertFalse(settings["controls_authorized"])
+        self.assertIsNone(result["learning_system"])
+        self.assertFalse(self.store.path.exists())
+
+    def test_absent_foreground_has_no_active_control_settings(self):
+        with patch.object(bridge, "active_window_title", return_value=""):
+            result = bridge.inspect_active_window()
+        self.assertIn("control_settings", result)
+        self.assertIsNone(result["control_settings"])
+        self.assertFalse(result["input_ready"])
+
+    def test_modifying_diagnostics_cannot_change_controls_or_safety(self):
+        fixture = {"window_title": "Calibration Fixture", "keyboard_backend": "sendinput_scancode",
+                   "movement": "WASD"}
+        with patch.dict(bridge.GAME_PROFILES, {"calibration_fixture": fixture}, clear=True), \
+             patch.object(bridge, "active_window_title", return_value="Calibration Fixture"):
+            first = bridge.inspect_active_window()
+            self.assertIn("control_settings", first)
+            first["control_settings"]["bindings"]["movement"] = "unsafe override"
+            first["control_settings"]["limits"]["max_hold_ms"] = 90000
+            second = bridge.inspect_active_window()["control_settings"]
+            self.assertEqual(second["bindings"]["movement"], "WASD")
+            with self.assertRaises(ValueError):
+                bridge.validate_duration_ms(2001)
+            self.assertEqual(second["limits"], {"max_hold_ms": 2000,
+                "max_mouse_delta": 600, "max_sequence_steps": 3, "max_sequence_ms": 8000})
+
     def record(self, **changes):
         data = dict(game="Pointer Mode", title="Coop routine", category="routine",
                     status="observed", source="demonstration", attempted="Collect eggs",
@@ -92,6 +144,8 @@ class LearningBridgeTests(unittest.TestCase):
             result = bridge.inspect_active_window()
         self.assertEqual(result["title"], "Pointer Mode")
         self.assertFalse(result["learning_system"]["available"])
+        self.assertIn("control_settings", result)
+        self.assertEqual(result["control_settings"]["keyboard_backend"], "sendinput_scancode")
         self.assertTrue(result["learning_system"]["error"])
         self.assertFalse(result["learning_system"]["controls_authorized"])
         with self.assertRaises(Exception):
