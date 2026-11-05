@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.2-preview
+
+- Local input settings can select plain relative mouse events for captured cameras;
+  existing event delivery remains the default and diagnostics show the selection.
+- `control_character` can hold one interaction key while moving or looking, with
+  the existing duration bounds, foreground checks and release-on-error behavior.
+- Added offline coverage for mode selection, invalid settings and held-key cleanup.
+- Compatibility still requires an authorized local test and observed results.
+
 ## 0.1.1-preview
 
 - Read-only foreground diagnostics now report the selected keyboard method,

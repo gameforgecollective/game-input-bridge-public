@@ -22,9 +22,11 @@ from game_input_controls import (
     GAME_PROFILES,
     MAX_HOLD_MS,
     MAX_SEQUENCE_MS,
+    MOVEMENT_KEYS,
     bounded_hold,
     control_settings_for_window,
     game_profile_for_window,
+    relative_mouse_mode_for_window,
     validate_duration_ms,
     validate_key,
     validate_mouse_button,
@@ -132,7 +134,7 @@ def send_relative_mouse(
     previous_x = previous_y = sent = 0
     started = time.perf_counter()
     for step in range(1, steps + 1):
-        require_target(expected_window)
+        title = require_target(expected_window)
         pyautogui.failSafeCheck()
         progress = step / steps
         if smooth:
@@ -141,10 +143,11 @@ def send_relative_mouse(
         next_y = round(dy * progress)
         step_x, step_y = next_x - previous_x, next_y - previous_y
         if step_x or step_y:
-            # MOVE without ABSOLUTE supplies signed deltas. NOCOALESCE preserves
-            # individual movements while a game captures/recenters its cursor.
+            # Some captured cameras require plain relative MOVE. Preserve the
+            # existing NOCOALESCE delivery unless plain mode is selected.
+            flags = 0x0001 if relative_mouse_mode_for_window(title) == "plain" else 0x2001
             event = _INPUT(type=0, data=_INPUTUNION(mi=_MOUSEINPUT(
-                dx=step_x, dy=step_y, dwFlags=0x0001 | 0x2000,
+                dx=step_x, dy=step_y, dwFlags=flags,
             )))
             ctypes.set_last_error(0)
             if send_input(1, ctypes.byref(event), ctypes.sizeof(_INPUT)) != 1:
@@ -378,10 +381,15 @@ def move_mouse(expected_window: str, dx: int, dy: int, duration_ms: int = 120) -
 @mcp.tool()
 def control_character(
     expected_window: str, keys: list[str], dx: int = 0, dy: int = 0,
-    duration_ms: int = 400, smooth: bool = True,
+    duration_ms: int = 400, smooth: bool = True, hold_key: str | None = None,
 ) -> dict[str, Any]:
-    """Hold movement keys while turning the camera. Use W+Ctrl to sprint or W+Space to jump; always releases attempted keys."""
+    """Hold movement keys while turning. Optional hold_key holds one interaction key during the same bounded action. Movement keys belong in keys. Always releases attempted keys."""
     normalized = validate_movement_keys(keys)
+    if hold_key is not None:
+        interaction_key = validate_key(hold_key)
+        if interaction_key in MOVEMENT_KEYS:
+            raise ValueError("Put movement keys in keys, not hold_key.")
+        normalized.append(interaction_key)
     x, y = validate_mouse_delta(dx, dy)
     duration = validate_duration_ms(duration_ms)
     if not isinstance(smooth, bool):

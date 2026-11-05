@@ -46,19 +46,23 @@ def _apply_local_settings():
     if path.stat().st_size > 4096:
         raise ValueError("Input settings are too large.")
     settings = json.loads(path.read_text(encoding="utf-8-sig"))
-    if not isinstance(settings, dict) or set(settings) - {"window_title", "input_style", "keyboard_backend"}:
-        raise ValueError("Input settings accept window_title, input_style and keyboard_backend only.")
+    if not isinstance(settings, dict) or set(settings) - {"window_title", "input_style", "keyboard_backend", "relative_mouse_mode"}:
+        raise ValueError("Input settings accept window_title, input_style, keyboard_backend and relative_mouse_mode only.")
     title = settings.get("window_title")
     style = settings.get("input_style", "camera")
     backend = settings.get("keyboard_backend", "sendinput_scancode")
+    mouse_mode = settings.get("relative_mouse_mode", "no_coalesce")
     if not isinstance(title, str) or not title.strip() or len(title) > 200 or any(ord(c) < 32 for c in title):
         raise ValueError("window_title must be nonempty text of at most 200 characters.")
     if style not in ("pointer", "camera"):
         raise ValueError("input_style must be pointer or camera.")
     if backend not in ("sendinput_scancode", "pyautogui_virtual_key"):
         raise ValueError("Unsupported keyboard_backend.")
+    if mouse_mode not in ("plain", "no_coalesce"):
+        raise ValueError("relative_mouse_mode must be plain or no_coalesce.")
     key = "pointer_mode" if style == "pointer" else "camera_mode"
-    GAME_PROFILES[key] = dict(GAME_PROFILES[key], window_title=title.strip(), keyboard_backend=backend)
+    GAME_PROFILES[key] = dict(GAME_PROFILES[key], window_title=title.strip(), keyboard_backend=backend,
+                              relative_mouse_mode=mouse_mode)
 
 
 _apply_local_settings()
@@ -78,14 +82,21 @@ def control_settings_for_window(title: str) -> dict | None:
     return {
         "profile": name,
         "keyboard_backend": profile["keyboard_backend"],
+        "relative_mouse_mode": relative_mouse_mode_for_window(title),
         "bindings": {key: value for key, value in profile.items()
-                     if key not in {"window_title", "keyboard_backend"}},
+                     if key not in {"window_title", "keyboard_backend", "relative_mouse_mode"}},
         "limits": {"max_hold_ms": MAX_HOLD_MS, "max_mouse_delta": MAX_MOUSE_DELTA,
                    "max_sequence_steps": MAX_SEQUENCE_STEPS, "max_sequence_ms": MAX_SEQUENCE_MS},
         "runtime_verified": False,
         "controls_authorized": False,
         "notice": "Configuration only; verify actual movement and camera response after an authorized action.",
     }
+
+
+def relative_mouse_mode_for_window(title: str) -> str:
+    """Select event delivery without changing any input limits."""
+    _, profile = game_profile_for_window(title)
+    return profile.get("relative_mouse_mode", "no_coalesce")
 
 KEY_ALIASES = {
     "spacebar": "space",

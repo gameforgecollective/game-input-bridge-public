@@ -74,6 +74,29 @@ class CharacterControlTests(unittest.TestCase):
         self.assertAlmostEqual(self.now, 0.08)
         self.assertFalse(self.pressed)
 
+    def test_interaction_key_stays_held_during_camera_motion(self):
+        result = self.control(keys=[], hold_key="R", dx=60, duration_ms=60)
+        self.assertTrue(self.moves)
+        self.assertTrue(all(held == {"r"} for _, _, held in self.moves))
+        self.assertEqual(result["keys"], ["r"])
+        self.assertFalse(self.pressed)
+        self.assertFalse(bridge.held_keys)
+
+    def test_interaction_key_releases_when_camera_input_fails(self):
+        self.native.SendInput.side_effect = None
+        self.native.SendInput.return_value = 0
+        with self.assertRaises(OSError):
+            self.control(keys=["w"], hold_key="r", dx=20, duration_ms=40)
+        self.assertFalse(self.pressed)
+        self.assertFalse(bridge.held_keys)
+
+    def test_invalid_or_movement_hold_key_is_rejected_before_input(self):
+        for key in ("alt+f4", "s", "ctrl", ""):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                self.control(keys=["w"], hold_key=key, dx=20, duration_ms=40)
+        self.assertFalse(self.key_events)
+        self.assertFalse(self.moves)
+
     def test_smooth_turn_starts_and_ends_gently_without_losing_distance(self):
         self.control(keys=[], dx=100, duration_ms=100)
         amounts = [x for x, _, _ in self.moves]

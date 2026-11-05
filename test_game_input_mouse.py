@@ -56,6 +56,24 @@ class RelativeCameraInputTests(unittest.TestCase):
         with self.assertRaises(OSError):
             bridge.move_mouse("Camera Mode", 10, 0, 1)
 
+    def test_plain_relative_mode_can_be_selected_by_configuration(self):
+        from game_input_controls import GAME_PROFILES
+        with patch.dict(GAME_PROFILES, {"synthetic_camera": {
+            "window_title": "Synthetic Camera", "keyboard_backend": "sendinput_scancode",
+            "relative_mouse_mode": "plain",
+        }}):
+            bridge.active_window_title.return_value = "Synthetic Camera"
+            bridge.move_mouse("Synthetic Camera", 20, -10, 20)
+        flags = [bridge._INPUT.from_buffer_copy(packet).data.mi.dwFlags for packet in self.packets]
+        self.assertEqual(flags, [0x0001] * len(flags))
+        self.assertTrue(flags)
+
+    def test_default_relative_mode_keeps_existing_event_flags(self):
+        bridge.move_mouse("Camera Mode", 20, -10, 20)
+        flags = [bridge._INPUT.from_buffer_copy(packet).data.mi.dwFlags for packet in self.packets]
+        self.assertEqual(flags, [0x2001] * len(flags))
+        self.assertTrue(flags)
+
     def test_focus_loss_stops_the_remaining_movement(self):
         self.target_patch.stop()
         self.target_patch = patch.object(bridge, "active_window_title", side_effect=["Camera Mode", "Camera Mode", "Notepad"])

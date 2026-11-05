@@ -70,13 +70,27 @@ If you need to select a keyboard method or pointer-style interaction, copy
 {
   "window_title": "Your Foreground Window",
   "input_style": "pointer",
-  "keyboard_backend": "sendinput_scancode"
+  "keyboard_backend": "sendinput_scancode",
+  "relative_mouse_mode": "no_coalesce"
 }
 ```
 
 `input_style` accepts `pointer` or `camera`. The alternative keyboard method is
 `pyautogui_virtual_key`. Reconnect after changing this local file. Your bindings
 still determine the result, so verify a short action before longer sequences.
+
+`relative_mouse_mode` accepts `no_coalesce` (the existing default) or `plain`.
+Both send bounded signed relative mouse events. Some applications with a captured
+camera respond to plain events but ignore the default event-delivery flag. If
+camera look fails, compare these modes one at a time during an authorized local
+test, reconnecting after each settings change. The selected mode appears in
+`control_settings`; it does not establish that the camera moved.
+
+For an interaction that requires holding a key while looking, `control_character`
+accepts an optional `hold_key`, for example `"r"`, alongside `keys`, `dx`, `dy`
+and `duration_ms`. Put movement keys in `keys`. The interaction key uses the same
+two-second limit, foreground checks and release-on-error behavior as movement.
+This option applies to `control_character`, not `play_step` or `play_sequence`.
 
 ### Optional JavaScript client
 

@@ -45,6 +45,12 @@ change one field at a time and reconnect the server safely between trials.
 Do not reconnect while any input is held or another assistant owns that PC.
 Neither backend is guaranteed to work with every application.
 
+For a camera-only failure, compare `relative_mouse_mode:"no_coalesce"` with
+`relative_mouse_mode:"plain"` in the same ignored local settings file. Keep the
+keyboard method and other conditions unchanged. Reconnect safely, confirm the
+selected mode in diagnostics, then compare an authorized short camera action
+against stable landmarks. Neither mode changes the duration or movement limits.
+
 Store the before state, expected result, observed result, evidence reference and
 backend in the local learning journal. `verified` requires a caller-checked game
 outcome after an authorized action. Append corrections without erasing earlier

@@ -41,6 +41,23 @@ class InputSettingsTests(unittest.TestCase):
             with self.subTest(settings=settings), self.assertRaises(ValueError):
                 self.load(settings)
 
+    def test_relative_mouse_mode_defaults_to_existing_event_delivery(self):
+        settings = self.load().control_settings_for_window("Unrecognized Window")
+        self.assertEqual(settings.get("relative_mouse_mode"), "no_coalesce")
+
+    def test_local_relative_mouse_mode_is_reported_without_authorizing_input(self):
+        controls = self.load({"window_title": "My Window", "relative_mouse_mode": "plain"})
+        settings = controls.control_settings_for_window("My Window")
+        self.assertEqual(settings["relative_mouse_mode"], "plain")
+        self.assertNotIn("relative_mouse_mode", settings["bindings"])
+        self.assertFalse(settings["runtime_verified"])
+        self.assertFalse(settings["controls_authorized"])
+
+    def test_invalid_relative_mouse_mode_is_rejected_on_load(self):
+        for mode in ("absolute", "", True, None, []):
+            with self.subTest(mode=mode), self.assertRaises(ValueError):
+                self.load({"window_title": "My Window", "relative_mouse_mode": mode})
+
 
 if __name__ == "__main__":
     unittest.main()

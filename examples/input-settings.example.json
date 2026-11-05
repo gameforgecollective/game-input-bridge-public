@@ -1,5 +1,6 @@
 {
   "window_title": "Your Foreground Window",
   "input_style": "pointer",
-  "keyboard_backend": "sendinput_scancode"
+  "keyboard_backend": "sendinput_scancode",
+  "relative_mouse_mode": "no_coalesce"
 }

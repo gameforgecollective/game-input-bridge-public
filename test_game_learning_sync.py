@@ -132,14 +132,16 @@ class LearningSyncTests(unittest.TestCase):
     def test_timeout_terminates_orphan_after_git_root_has_exited(self):
         pidfile = self.root / "owned-child.pid"
         launcher = self.root / "orphan_fixture.py"
-        child = "import os,pathlib,time; pathlib.Path(" + repr(str(pidfile)) + ").write_text(str(os.getpid())); time.sleep(8)"
+        child = "import os,pathlib,time; pathlib.Path(" + repr(str(pidfile)) + ").write_text(str(os.getpid())); time.sleep(30)"
         launcher.write_text("import subprocess,sys\nsubprocess.Popen([sys.executable,'-c'," + repr(child) + "])\n", encoding="utf-8")
         python = shlex.quote(sys.executable.replace("\\", "/"))
         alias = "!" + python + " " + shlex.quote(str(launcher).replace("\\", "/"))
         exchange = GitLearningExchange(self.stores[0], str(self.remote), "AgentOne")
+        # Allow the launcher and its child to start on a busy Windows desktop.
+        # The child outlives this deadline; cleanup must still terminate it.
         with self.assertRaises(subprocess.TimeoutExpired):
             exchange._git(["-c", "alias.orphanfixture=" + alias, "orphanfixture"],
-                          time.monotonic() + 1, cwd=self.root / "seed")
+                          time.monotonic() + 5, cwd=self.root / "seed")
         self.assertTrue(pidfile.exists(), "Fixture must actually spawn its child")
         kernel = ctypes.WinDLL("kernel32", use_last_error=True)
         kernel.OpenProcess.argtypes = [ctypes.c_ulong, ctypes.c_int, ctypes.c_ulong]
