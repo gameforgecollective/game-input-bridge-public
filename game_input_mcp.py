@@ -604,21 +604,19 @@ def play_sequence(expected_window: str, steps: list[dict[str, Any]]) -> CallTool
 
 @mcp.tool()
 def hold_mouse_button(expected_window: str, button: str = "left", hold_ms: int = 120) -> dict[str, Any]:
-    """Hold one mouse button briefly; the button is always released afterward."""
+    """Hold a mouse button briefly and retain failed releases for cleanup retry."""
     normalized = validate_mouse_button(button)
     duration = validate_duration_ms(hold_ms)
     with input_lock:
         title = require_target(expected_window)
 
         def press() -> None:
-            pyautogui.mouseDown(button=normalized)
             held_buttons.add(normalized)
+            pyautogui.mouseDown(button=normalized)
 
         def release() -> None:
-            try:
-                pyautogui.mouseUp(button=normalized)
-            finally:
-                held_buttons.discard(normalized)
+            pyautogui.mouseUp(button=normalized)
+            held_buttons.discard(normalized)
 
         bounded_hold(press, release, duration)
     return {"window": title, "button": normalized, "held_ms": duration, "released": True}

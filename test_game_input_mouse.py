@@ -93,5 +93,24 @@ class RelativeCameraInputTests(unittest.TestCase):
         self.assertFalse(self.packets)
 
 
+class MouseButtonCleanupTests(unittest.TestCase):
+    def test_failed_release_after_partial_press_can_be_retried(self):
+        with (
+            patch.object(bridge, "held_buttons", set()),
+            patch.object(bridge, "held_keys", set()),
+            patch.object(bridge, "require_target", return_value="Test Window"),
+            patch.object(bridge.pyautogui, "mouseDown", side_effect=RuntimeError("partial press")),
+            patch.object(bridge.pyautogui, "mouseUp", side_effect=[RuntimeError("release failed"), None]) as release,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "release failed"):
+                bridge.hold_mouse_button("Test Window", hold_ms=1)
+            self.assertEqual(bridge.held_buttons, {"left"})
+            cleanup = bridge.release_all_inputs()
+            self.assertTrue(cleanup["safe"])
+            self.assertEqual(cleanup["released"], ["mouse:left"])
+            self.assertFalse(bridge.held_buttons)
+            self.assertEqual(release.call_count, 2)
+
+
 if __name__ == "__main__":
     unittest.main()

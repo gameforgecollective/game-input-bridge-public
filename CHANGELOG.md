@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3-preview
+
+- If a mouse-button hold cannot release its button, `release_all_inputs` can
+  retry the release. This also covers presses that report an error after
+  partially completing.
+
 ## 0.1.2-preview
 
 - Local input settings can select plain relative mouse events for captured cameras;
