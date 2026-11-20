@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4-preview
+
+- Capture decoding reuses the original pixel buffer, avoiding one full-frame
+  copy while keeping the same JPEG output.
+
 ## 0.1.3-preview
 
 - If a mouse-button hold cannot release its button, `release_all_inputs` can

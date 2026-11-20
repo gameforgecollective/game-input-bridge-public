@@ -38,7 +38,7 @@ def capture_game_view(expected_hwnd: int, require_focus) -> tuple[Image, dict]:
     current_hwnd, current_region = foreground_client_region()
     if current_hwnd != hwnd or current_region != region:
         raise ValueError("The game window changed during capture; the image was discarded.")
-    frame = PillowImage.frombytes("RGB", shot.size, shot.bgra, "raw", "BGRX")
+    frame = PillowImage.frombytes("RGB", shot.size, shot.raw, "raw", "BGRX")
     if frame.width > 1280:
         frame = frame.resize((1280, round(frame.height * 1280 / frame.width)))
     output = io.BytesIO()
