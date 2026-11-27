@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5-preview
+
+- Observation-only steps now honor the render wait before the screenshot.
+  Set `settle_ms` to zero for an immediate capture. These waits count toward
+  the eight-second limit for a sequence.
+
 ## 0.1.4-preview
 
 - Capture decoding reuses the original pixel buffer, avoiding one full-frame

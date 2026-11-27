@@ -492,9 +492,7 @@ def execute_step(expected_window: str, step: dict, expected_hwnd: int) -> dict:
             finally:
                 pyautogui.FAILSAFE = previous_failsafe
     action_ms = round((time.perf_counter() - started) * 1000, 1)
-    has_input = (action is not None or mouse_button is not None or step["slot"] is not None
-                 or step["tap"] is not None or step["pointer_x"] is not None)
-    render_wait = step["settle_ms"] if has_input else 0
+    render_wait = step["settle_ms"]
     if render_wait:
         wait_for_game(expected_window, render_wait)
     return {"window": title, "action_completed": True, "action": action, "turn": turn,

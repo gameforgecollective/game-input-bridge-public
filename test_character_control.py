@@ -74,6 +74,15 @@ class CharacterControlTests(unittest.TestCase):
         self.assertAlmostEqual(self.now, 0.08)
         self.assertFalse(self.pressed)
 
+    def test_observation_step_honors_wait_without_input(self):
+        step = bridge.validate_step_options({"settle_ms": 125})
+        with patch.object(bridge, "foreground_client_region", return_value=(7, {})):
+            result = bridge.execute_step("Camera Mode", step, 7)
+        self.assertEqual(result["render_wait_ms"], 125)
+        self.assertAlmostEqual(self.now, 0.125)
+        self.assertFalse(self.key_events)
+        self.assertFalse(self.moves)
+
     def test_interaction_key_stays_held_during_camera_motion(self):
         result = self.control(keys=[], hold_key="R", dx=60, duration_ms=60)
         self.assertTrue(self.moves)

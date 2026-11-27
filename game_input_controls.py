@@ -175,7 +175,7 @@ def step_budget_ms(step: dict) -> int:
     budget += step["tap_ms"] if step["tap"] is not None else 0
     budget += 140 if step["slot"] is not None else 0
     budget += 60 if step["pointer_x"] is not None else 0
-    return budget + (step["settle_ms"] if budget else 0)
+    return budget + step["settle_ms"]
 
 
 def validate_sequence_steps(steps: list[dict]) -> list[dict]:

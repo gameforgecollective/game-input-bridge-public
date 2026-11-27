@@ -67,6 +67,13 @@ class GameInputControlsTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             controls.validate_mouse_delta(900, 0)
 
+    def test_observation_wait_counts_toward_sequence_limit(self):
+        action = {"keys": ["w"], "duration_ms": 2000, "button": "left",
+                  "click_ms": 1400, "tap": "e", "tap_ms": 500, "settle_ms": 0}
+        controls.validate_sequence_steps([action, action, {"settle_ms": 200}])
+        with self.assertRaisesRegex(ValueError, "combined requested action time"):
+            controls.validate_sequence_steps([action, action, {"settle_ms": 201}])
+
 
 if __name__ == "__main__":
     unittest.main()
